@@ -1,0 +1,18 @@
+{
+  "name": "Wear, again | Personal wardrobe",
+  "short_name": "Wear, again",
+  "description": "A considered catalog of the clothes you own and wear.",
+  "start_url": "./Closet%20catalog%20prototype.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f4ef",
+  "theme_color": "#f3f4ef",
+  "icons": [
+    {
+      "src": "./wardrobe-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
