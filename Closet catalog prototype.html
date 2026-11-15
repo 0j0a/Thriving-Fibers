@@ -1,112 +1,404 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#d7f34a">
-<meta name="color-scheme" content="light dark">
-<title>forever wardrobe</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="wardrobe.css">
- </head>
-<body>
-<main class="shell">
-  <header class="masthead"><div class="wordmark"><span class="wordmark-mark" aria-hidden="true">w</span> forever wardrobe</div><div class="local-note">Your wardrobe, kept on this device</div></header>
-  <section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">A considered closet</p><h1 id="page-title">My wardrobe</h1><p class="subtitle">A little more wear from the things you already own.</p></div><div class="intro-actions"><button class="secondary" id="archiveOpen" type="button">Past pieces</button><button class="primary" id="addOpen" type="button"><span class="plus" aria-hidden="true">+</span>Add a piece</button></div></section>
-  <section class="stats" id="stats" aria-label="Wardrobe summary" aria-live="polite"></section>
-  <section aria-labelledby="catalog-title"><div class="catalog-head"><h2 id="catalog-title">Everything you own</h2><span class="count-label" id="resultCount"></span></div>
-    <div class="tools"><label class="search"><span class="sr-only">Search your wardrobe</span><input id="search" type="search" placeholder="Search name, fabric, brand or colour" autocomplete="off"></label><label><span class="sr-only">Filter by fabric</span><select id="filterFabric" aria-label="Filter by fabric"><option value="">All fabrics</option></select></label><label><span class="sr-only">Filter by condition</span><select id="filterCondition" aria-label="Filter by condition"><option value="">All conditions</option></select></label><label><span class="sr-only">Filter by colour</span><select id="filterColor" aria-label="Filter by colour"><option value="">All colours</option></select></label><label><span class="sr-only">Sort catalog</span><select id="sort"><option value="recent">Recently added</option><option value="name">Name A–Z</option><option value="wears">Most worn</option></select></label></div>
-    <div class="filters" id="filters" role="group" aria-label="Filter by category"></div><div class="grid" id="grid" aria-live="polite"></div>
-  </section>
-  <p class="footer-note">Your catalog is saved locally in this browser. Photos are resized before they are stored.</p>
-</main>
-<dialog id="itemDialog" aria-labelledby="dialogTitle"><div class="dialog-head"><h2 id="dialogTitle">Add a piece</h2><button class="close" type="button" id="closeDialog" aria-label="Close">×</button></div><form class="form" id="itemForm"><input id="editId" type="hidden"><label class="field full">Name<input id="name" name="name" placeholder="e.g. Soft cotton cardigan" maxlength="70" required></label><label class="field">Category<select id="cat" name="cat"></select></label><label class="field">Fabric<select id="fab" name="fab"></select></label><label class="field">Colour<input id="col" name="col" type="color" value="#728579"></label><label class="field">Brand<input id="brand" name="brand" maxlength="70" autocomplete="organization"></label><label class="field">Size label<input id="sizeLabel" name="sizeLabel" maxlength="30" placeholder="As printed on the tag"></label><label class="field">Condition<select id="condition" name="condition"><option>Good</option><option>New</option><option>Worn</option><option>Needs repair</option></select></label><label class="field">Fit feedback<select id="fit" name="fit"><option>Fits well</option><option>Runs small</option><option>Runs large</option></select></label><label class="field">How you got it<select id="src" name="src"><option>New</option><option>Secondhand</option><option>Swapped</option><option>Gifted</option></select></label><label class="field">Year acquired<input id="yearAcquired" name="yearAcquired" type="number" min="1900" step="1" required></label><label class="field full">Memory or note<textarea id="note" name="note" maxlength="500" placeholder="Optional"></textarea></label><div class="field full"><span>Photo</span><div class="photo-preview" id="photoPreview"><span>A colour portrait will appear here</span></div></div><label class="field full">Choose an image<input id="photo" name="photo" type="file" accept="image/*"></label><label class="remove-photo" id="removePhotoWrap" hidden><input id="removePhoto" type="checkbox">Remove saved photo</label><div class="form-foot"><button class="secondary" type="button" id="cancelDialog">Cancel</button><button class="primary" type="submit" id="saveButton">Save piece</button></div></form></dialog>
-<dialog id="detailDialog" aria-labelledby="detailTitle"><div class="dialog-head"><h2 id="detailTitle">Piece details</h2><button class="close" type="button" data-close="detailDialog" aria-label="Close">×</button></div><div class="detail-content" id="detailContent"></div><div class="detail-actions" id="detailActions"></div></dialog>
-<dialog id="checkinDialog" aria-labelledby="checkinTitle"><div class="dialog-head"><h2 id="checkinTitle">A gentle check-in</h2><button class="close" type="button" data-close="checkinDialog" aria-label="Close">×</button></div><div class="checkin-list" id="checkinList"></div></dialog>
-<dialog id="archiveDialog" aria-labelledby="archiveTitle"><div class="dialog-head"><h2 id="archiveTitle">Past pieces</h2><button class="close" type="button" data-close="archiveDialog" aria-label="Close">×</button></div><div class="archive-list" id="archiveList"></div></dialog>
-<dialog id="pastDateDialog" aria-labelledby="pastDateTitle"><div class="dialog-head"><h2 id="pastDateTitle">Log a wear</h2><button class="close" type="button" data-close="pastDateDialog" aria-label="Close">×</button></div><form class="form" id="pastDateForm"><input id="pastDateItem" type="hidden"><label class="field full">Date worn<input id="pastDate" type="date" required></label><div class="form-foot"><button type="button" class="secondary" data-close="pastDateDialog">Cancel</button><button type="submit" class="primary">Save wear</button></div></form></dialog>
-<dialog id="removeDialog" aria-labelledby="removeTitle"><div class="dialog-head"><h2 id="removeTitle">Pass this piece on</h2><button class="close" type="button" data-close="removeDialog" aria-label="Close">×</button></div><form class="form" id="removeForm"><input id="removeItemId" type="hidden"><label class="field full">What happened to it?<select id="removeReason"><option value="donated">Donated</option><option value="sold">Sold</option><option value="discarded">Discarded</option><option value="other">Other</option></select></label><div class="form-foot"><button type="button" class="secondary" data-close="removeDialog">Cancel</button><button type="submit" class="primary">Move to history</button></div></form></dialog>
-<dialog id="feelingDialog" aria-labelledby="feelingTitle"><div class="dialog-head"><h2 id="feelingTitle">How did it feel?</h2><button class="close" type="button" data-close="feelingDialog" aria-label="Close">×</button></div><div class="checkin-list"><p>Optional, just for your own reflection.</p><div class="checkin-actions" id="feelingActions"></div></div></dialog>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastMessage"></span><button id="undoWear" type="button">Undo</button></div>
-<script>
-"use strict";
-const CATEGORIES=["Tops","Bottoms","Dresses","Outerwear","Shoes","Accessories"];
-const CARE={Cotton:"Wash at 30–40°C and line dry. Fix small tears early with a running stitch.",Wool:"Wash rarely by hand in cool water and dry flat. Air it between wears; darn moth holes.",Denim:"Wash inside out in cold water, only when needed. Patch worn knees from the inside.",Linen:"Wash cool and dry in shade. Wrinkles are normal, and it softens with age.",Synthetic:"Wash cool in a filter bag to catch microfibres. Skip the tumble dryer.",Leather:"Wipe clean and condition twice a year. Ask a cobbler about resoling.",Silk:"Hand wash cold with gentle soap. Never wring; dry flat away from sun."};
-const KEY="closet-proto-v1",FABRICS=Object.keys(CARE),$=id=>document.getElementById(id);
-const localDate=(date=new Date())=>{const value=new Date(date);value.setMinutes(value.getMinutes()-value.getTimezoneOffset());return value.toISOString().slice(0,10);};
-const makeId=()=>globalThis.crypto?.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
-function normalize(item){
- const fabrics=Array.isArray(item.fabrics)?item.fabrics:String(item.fabric||item.fab||FABRICS[0]).split(",").map(value=>value.trim()).filter(Boolean);
- return{id:item.id??makeId(),name:String(item.name||""),category:item.category||item.cat||CATEGORIES[0],fabric:fabrics.join(", ")||FABRICS[0],fabrics,color:item.color||item.col||"#728579",brand:item.brand||"",sizeLabel:item.sizeLabel||"",condition:item.condition||"Good",fitFeedback:item.fitFeedback||item.fit||"Fits well",source:item.source||item.src||"New",yearAcquired:Number(item.yearAcquired)||new Date().getFullYear(),note:item.note||"",createdAt:item.createdAt||new Date().toISOString(),wearLogs:Array.isArray(item.wearLogs)?item.wearLogs.map(log=>({id:log.id||makeId(),wornOn:log.wornOn||log.worn_on||localDate(),feeling:log.feeling||null})):[],legacyWearCount:Math.max(0,Number(item.legacyWearCount??item.wears)||0),status:item.status||"active",removalReason:item.removalReason||"",reviewStatus:item.reviewStatus||"love",lastCheckedIn:item.lastCheckedIn||item.last_checked_in||null,photo:item.photo||""};
-}
-let items=[];try{const saved=localStorage.getItem(KEY);if(saved){const parsed=JSON.parse(saved);if(Array.isArray(parsed))items=parsed.map(normalize);}}catch(error){console.warn("Could not read saved wardrobe data",error);}
-let activeCategory="All",pendingPhoto=null,lastWear=null,toastTimer=null,detailId=null;
-const dialog=$("itemDialog");
-function save(){try{localStorage.setItem(KEY,JSON.stringify(items));return true;}catch(error){alert("This browser is out of storage space. Try removing a photo or piece.");return false;}}
-function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
-function activeItems(){return items.filter(item=>item.status==="active");}
-function totalWears(item){return (Number(item.legacyWearCount)||0)+(item.wearLogs||[]).length;}
-function careFor(item){return item.fabrics.map(fabric=>`${fabric}: ${CARE[fabric]||"Follow the care label and repair small damage early."}`).join("\n");}
-function lastWorn(item){return item.wearLogs.map(log=>log.wornOn).sort().at(-1)||null;}
-function latestActivity(item){return [lastWorn(item),item.lastCheckedIn,item.createdAt.slice(0,10)].filter(Boolean).sort().at(-1);}
-function checkinDue(item){const last=latestActivity(item);return item.status==="active"&&(Date.now()-new Date(`${last}T00:00:00`).getTime())>=60*86400000;}
-function elapsed(date){if(!date)return"Not worn yet";const days=Math.max(0,Math.floor((new Date(`${localDate()}T00:00:00`)-new Date(`${date}T00:00:00`))/86400000));return days===0?"Today":days===1?"Yesterday":`${days} days ago`;}
-function ownedFor(item){const years=new Date().getFullYear()-Number(item.yearAcquired);return years>0?`With you ${years} ${years===1?"year":"years"}`:"With you this year";}
-function formatDate(date){return date?new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(`${date}T12:00:00`)):"Not worn yet";}
-function fillSelect(select,values){select.innerHTML=values.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");}
-fillSelect($("cat"),CATEGORIES);fillSelect($("fab"),FABRICS);$("fab").multiple=true;$("fab").size=3;
-function render(){
- const closet=activeItems(),due=closet.filter(checkinDue),currentYear=new Date().getFullYear();
- $("stats").innerHTML=`<div class="stat"><strong>${closet.length}</strong><span>Total pieces</span></div><div class="stat"><strong>${closet.filter(item=>currentYear-Number(item.yearAcquired)>=3).length}</strong><span>Kept 3+ years</span></div><div class="stat"><strong>${closet.filter(item=>item.source!=="New").length}</strong><span>Not bought new</span></div><button class="stat ${due.length?"alert":""}" id="checkinsOpen" type="button" aria-label="${due.length} check-ins waiting"><strong>${due.length}</strong><span>Check-ins waiting</span></button>`;
- const categories=["All",...CATEGORIES];$("filters").innerHTML=categories.map(category=>`<button class="filter" type="button" data-category="${escapeHtml(category)}" aria-pressed="${category===activeCategory}">${escapeHtml(category)}</button>`).join("");
- const fabricFilter=$("filterFabric").value,conditionFilter=$("filterCondition").value,colorFilter=$("filterColor").value;
- const options=(id,title,values,current)=>{$(id).innerHTML=`<option value="">${title}</option>`+values.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(id==="filterColor"?`Colour ${value}`:value)}</option>`).join("");$(id).value=current;};
- options("filterFabric","All fabrics",[...new Set(closet.flatMap(item=>item.fabrics))].sort(),fabricFilter);options("filterCondition","All conditions",[...new Set(closet.map(item=>item.condition))].sort(),conditionFilter);options("filterColor","All colours",[...new Set(closet.map(item=>item.color))].sort(),colorFilter);
- const query=$("search").value.trim().toLowerCase();let visible=closet.filter(item=>(activeCategory==="All"||item.category===activeCategory)&&(!fabricFilter||item.fabrics.includes(fabricFilter))&&(!conditionFilter||item.condition===conditionFilter)&&(!colorFilter||item.color===colorFilter)&&(!query||[item.name,item.category,item.fabric,item.color,item.brand,item.condition,item.fitFeedback,item.source,item.sizeLabel].some(value=>String(value||"").toLowerCase().includes(query))));
- const sort=$("sort").value;if(sort==="name")visible.sort((a,b)=>a.name.localeCompare(b.name));if(sort==="wears")visible.sort((a,b)=>totalWears(b)-totalWears(a));
- $("resultCount").textContent=`${visible.length} ${visible.length===1?"piece":"pieces"}`;
- $("grid").innerHTML=visible.length?visible.map(item=>{const color=/^#[\da-f]{6}$/i.test(item.color)?item.color:"#9aa99c",photo=item.photo?`<img src="${item.photo}" loading="lazy" decoding="async" alt="Photo of ${escapeHtml(item.name)}">`:`<span class="photo-word" aria-hidden="true">${escapeHtml(item.name.trim().slice(0,2)||"W")}</span>`,last=lastWorn(item);return `<article class="item"><div class="photo" style="--fabric:${color}">${photo}<span class="tag">${escapeHtml(item.category)}</span></div><div class="item-body"><div class="item-title-row"><h3>${escapeHtml(item.name)}</h3><span class="color-dot" style="background:${color}" title="Garment colour"></span></div><div class="meta">${escapeHtml(item.fabric)} · ${escapeHtml(item.source)} · ${escapeHtml(item.fitFeedback)}</div><div class="metrics"><span><strong>${totalWears(item)}</strong> wears</span><span>${last?`Last worn ${elapsed(last)}`:'<span class="unworn">Not worn yet</span>'}</span></div><div class="meta">${escapeHtml(ownedFor(item))}</div><div class="actions"><button type="button" class="wear" data-action="wear" data-id="${escapeHtml(item.id)}">Worn today</button><button type="button" data-action="detail" data-id="${escapeHtml(item.id)}">Details</button><button type="button" data-action="edit" data-id="${escapeHtml(item.id)}">Edit</button></div></div></article>`;}).join(""):`<div class="empty"><h3>${closet.length?"No pieces found":"Start with one favorite"}</h3><p>${closet.length?"Try another search or category.":"Add a piece and start keeping track of what you wear."}</p>${closet.length?"":'<button type="button" class="primary" id="emptyAdd">Add a piece</button>'}</div>`;
-}
-function resetForm(){$("itemForm").reset();Array.from($("fab").options).forEach((option,index)=>option.selected=index===0);$("editId").value="";$("col").value="#728579";$("yearAcquired").value=new Date().getFullYear();$("photo").value="";$("removePhoto").checked=false;$("removePhotoWrap").hidden=true;pendingPhoto=null;$("dialogTitle").textContent="Add a piece";$("saveButton").textContent="Save piece";updatePreview(null);}
-function updatePreview(photo){const preview=$("photoPreview");preview.style.setProperty("--fabric",$("col").value);preview.innerHTML=photo?`<img src="${photo}" alt="Selected garment photo">`:`<span>A colour portrait will appear here</span>`;}
-function openForm(item){resetForm();if(item){$("editId").value=item.id;$("name").value=item.name;$("cat").value=item.category;Array.from($("fab").options).forEach(option=>option.selected=item.fabrics.includes(option.value));$("col").value=item.color;$("brand").value=item.brand;$("sizeLabel").value=item.sizeLabel;$("condition").value=item.condition;$("fit").value=item.fitFeedback;$("src").value=item.source;$("yearAcquired").value=item.yearAcquired;$("note").value=item.note;$("removePhotoWrap").hidden=!item.photo;updatePreview(item.photo||null);$("dialogTitle").textContent="Edit piece";$("saveButton").textContent="Save changes";}dialog.showModal();$("name").focus();}
-function compressImage(file){return createImageBitmap(file).then(bitmap=>{const scale=Math.min(1,1200/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);canvas.getContext("2d").drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();return canvas.toDataURL("image/jpeg",.8);});}
-function openDetails(id){const item=items.find(value=>String(value.id)===String(id));if(!item)return;detailId=item.id;const color=/^#[\da-f]{6}$/i.test(item.color)?item.color:"#d8e8d9",photo=item.photo?`<img class="detail-photo" src="${item.photo}" alt="Photo of ${escapeHtml(item.name)}">`:`<div class="detail-photo" style="display:grid;place-items:center;background:${color};color:white;font:600 2.5rem 'Playfair Display',Georgia,serif">${escapeHtml(item.name.slice(0,2))}</div>`,logs=[...item.wearLogs].sort((a,b)=>b.wornOn.localeCompare(a.wornOn)),history=logs.length?`<ul class="history-list">${logs.map(log=>`<li>${formatDate(log.wornOn)}${log.feeling?` · felt ${escapeHtml(log.feeling)}`:""}<button type="button" data-delete-wear="${escapeHtml(log.id)}">Delete</button></li>`).join("")}</ul>`:"<p>Not worn yet.</p>";
- $("detailContent").innerHTML=`${photo}<dl class="detail-list"><div><dt>Category</dt><dd>${escapeHtml(item.category)}</dd></div><div><dt>Fabric</dt><dd>${escapeHtml(item.fabric)}</dd></div><div><dt>Colour</dt><dd>${escapeHtml(item.color)}</dd></div><div><dt>Brand</dt><dd>${escapeHtml(item.brand||"Not recorded")}</dd></div><div><dt>Size label</dt><dd>${escapeHtml(item.sizeLabel||"Not recorded")}</dd></div><div><dt>Condition</dt><dd>${escapeHtml(item.condition)}</dd></div><div><dt>Fit</dt><dd>${escapeHtml(item.fitFeedback)}</dd></div><div><dt>Source</dt><dd>${escapeHtml(item.source)}</dd></div><div><dt>Acquired</dt><dd>${item.yearAcquired} · ${escapeHtml(ownedFor(item))}</dd></div><div><dt>Last worn</dt><dd>${escapeHtml(elapsed(lastWorn(item)))}</dd></div></dl>${item.note?`<p class="detail-note">${escapeHtml(item.note)}</p>`:""}<h3>Care notes</h3><p class="care">${escapeHtml(careFor(item))}</p><h3>Wear history · ${totalWears(item)} total</h3>${item.legacyWearCount?`<p>${item.legacyWearCount} earlier wears were saved without dates.</p>`:""}${history}`;
- $("detailActions").innerHTML=item.status==="active"?'<button class="primary" type="button" data-detail="wear">Worn today</button><button class="secondary" type="button" data-detail="past">Log past date</button><button class="secondary" type="button" data-detail="edit">Edit</button><button class="secondary" type="button" data-detail="remove">Pass on</button>':'<button class="secondary" type="button" data-detail="restore">Return to closet</button>';$("detailDialog").showModal();}
-function renderCheckins(){const due=activeItems().filter(checkinDue);$("checkinList").innerHTML=due.length?due.map(item=>`<div class="checkin-row"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.category)} · Last activity ${escapeHtml(elapsed(latestActivity(item)))}</span></div><div class="checkin-actions"><button type="button" data-checkin="keep" data-id="${escapeHtml(item.id)}">Keep</button><button type="button" data-checkin="repair" data-id="${escapeHtml(item.id)}">Needs a fix</button><button type="button" data-checkin="pass" data-id="${escapeHtml(item.id)}">Pass it on</button></div></div>`).join(""):'<p>No check-ins waiting.</p>';$("checkinDialog").showModal();}
-function renderArchive(){const archived=items.filter(item=>item.status!=="active");$("archiveList").innerHTML=archived.length?archived.map(item=>`<div class="archive-row"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.category)} · ${escapeHtml(item.removalReason||item.status)} · ${totalWears(item)} wears</span></div><button type="button" data-archive-detail="${escapeHtml(item.id)}">Details</button></div>`).join(""):'<p>Pieces you pass on will stay here with their wear history.</p>';$("archiveDialog").showModal();}
-function showToast(message,undo=false){clearTimeout(toastTimer);$("toastMessage").textContent=message;$("undoWear").hidden=!undo;$("toast").hidden=false;toastTimer=setTimeout(()=>{$("toast").hidden=true;lastWear=null;},6000);}
-function logWear(item,date=localDate()){if(item.wearLogs.some(log=>log.wornOn===date)&&!confirm("This piece already has a wear logged for that day. Add another?"))return;const log={id:makeId(),wornOn:date,feeling:null},refreshDetails=$("detailDialog").open&&detailId===item.id;item.wearLogs.push(log);lastWear={itemId:item.id,logId:log.id};if(save()){render();if(refreshDetails)openDetails(item.id);showToast("Wear logged.",true);$("feelingActions").innerHTML=["great","fine","off"].map(feeling=>`<button type="button" data-feeling="${feeling}">${feeling[0].toUpperCase()+feeling.slice(1)}</button>`).join("")+'<button type="button" data-feeling="skip">Skip</button>';$ ("feelingDialog").showModal();}}
-function openRemove(id){$("removeItemId").value=id;$("removeReason").value="donated";$("removeDialog").showModal();}
-$("addOpen").addEventListener("click",()=>openForm());$("closeDialog").addEventListener("click",()=>dialog.close());$("cancelDialog").addEventListener("click",()=>dialog.close());$("archiveOpen").addEventListener("click",renderArchive);$("search").addEventListener("input",render);$("sort").addEventListener("change",render);$("filterFabric").addEventListener("change",render);$("filterCondition").addEventListener("change",render);$("filterColor").addEventListener("change",render);$("col").addEventListener("input",()=>$("photoPreview").style.setProperty("--fabric",$("col").value));
-$("photo").addEventListener("change",async event=>{const file=event.target.files[0];if(!file)return;if(!file.type.startsWith("image/")){alert("Choose an image file.");event.target.value="";return;}try{pendingPhoto=await compressImage(file);updatePreview(pendingPhoto);}catch(error){alert("That image could not be opened. Other form details are still here.");event.target.value="";}});
-$("itemForm").addEventListener("submit",event=>{
- event.preventDefault();
- const existing=items.find(item=>String(item.id)===$("editId").value),year=Number($("yearAcquired").value),fabrics=[...$("fab").selectedOptions].map(option=>option.value);
- if(!fabrics.length)fabrics.push(FABRICS[0]);
- if(year<1900||year>new Date().getFullYear()){alert("Enter a valid year up to this year.");return;}
- const item={id:existing?.id||makeId(),name:$("name").value.trim(),category:$("cat").value,fabric:fabrics.join(", "),fabrics,color:$("col").value,brand:$("brand").value.trim(),sizeLabel:$("sizeLabel").value.trim(),condition:$("condition").value,fitFeedback:$("fit").value,source:$("src").value,yearAcquired:year,note:$("note").value.trim(),createdAt:existing?.createdAt||new Date().toISOString(),wearLogs:existing?.wearLogs||[],legacyWearCount:existing?.legacyWearCount||0,status:existing?.status||"active",removalReason:existing?.removalReason||"",reviewStatus:existing?.reviewStatus||"love",lastCheckedIn:existing?.lastCheckedIn||null,photo:pendingPhoto||(existing?.photo&&!$("removePhoto").checked?existing.photo:"")};
- if(existing)items=items.map(current=>current.id===existing.id?item:current);else items.unshift(item);
- if(save()){dialog.close();resetForm();render();}
-});
-$("filters").addEventListener("click",event=>{const button=event.target.closest("[data-category]");if(button){activeCategory=button.dataset.category;render();}});
-$("grid").addEventListener("click",event=>{if(event.target.id==="emptyAdd"){openForm();return;}const button=event.target.closest("[data-action]");if(!button)return;const item=items.find(value=>String(value.id)===button.dataset.id);if(!item)return;if(button.dataset.action==="wear")logWear(item);if(button.dataset.action==="detail")openDetails(item.id);if(button.dataset.action==="edit")openForm(item);});
-$("stats").addEventListener("click",event=>{if(event.target.closest("#checkinsOpen"))renderCheckins();});
-document.addEventListener("click",event=>{const close=event.target.closest("[data-close]");if(close)$(close.dataset.close).close();});
-$("detailActions").addEventListener("click",event=>{const action=event.target.closest("[data-detail]")?.dataset.detail,item=items.find(value=>value.id===detailId);if(!action||!item)return;if(action==="wear")logWear(item);if(action==="past"){$("pastDateItem").value=item.id;$ ("pastDate").max=localDate();$("pastDate").value=localDate();$("pastDateDialog").showModal();}if(action==="edit"){ $("detailDialog").close();openForm(item);}if(action==="remove")openRemove(item.id);if(action==="restore"){item.status="active";item.removalReason="";save();$("detailDialog").close();render();}});
-$("detailContent").addEventListener("click",event=>{const button=event.target.closest("[data-delete-wear]");if(!button)return;const item=items.find(value=>value.id===detailId);item.wearLogs=item.wearLogs.filter(log=>log.id!==button.dataset.deleteWear);save();render();openDetails(item.id);});
-$("pastDateForm").addEventListener("submit",event=>{event.preventDefault();const date=$("pastDate").value;if(date>localDate()){alert("A wear date cannot be in the future.");return;}const item=items.find(value=>String(value.id)===$("pastDateItem").value);if(item){$("pastDateDialog").close();logWear(item,date);}});
-$("removeForm").addEventListener("submit",event=>{event.preventDefault();const item=items.find(value=>String(value.id)===$("removeItemId").value);if(item){item.status=$("removeReason").value==="other"?"discarded":$("removeReason").value;item.removalReason=$("removeReason").value;save();$("removeDialog").close();$("detailDialog").close();render();showToast("Piece moved to past pieces.");}});
-$("checkinList").addEventListener("click",event=>{const button=event.target.closest("[data-checkin]");if(!button)return;const item=items.find(value=>String(value.id)===button.dataset.id);if(!item)return;const answer=button.dataset.checkin;if(answer==="pass"){item.status="donated";item.removalReason="ready to pass on";item.reviewStatus="ready_to_pass_on";}else{item.lastCheckedIn=localDate();item.reviewStatus=answer==="repair"?"needs_repair":"love";if(answer==="repair")item.condition="Needs repair";}save();$("checkinDialog").close();render();if(answer==="repair")openDetails(item.id);else showToast(answer==="keep"?"Check-in saved.":"Piece moved to past pieces.");});
-$("archiveList").addEventListener("click",event=>{const button=event.target.closest("[data-archive-detail]");if(button){$("archiveDialog").close();openDetails(button.dataset.archiveDetail);}});
-$("feelingActions").addEventListener("click",event=>{const feeling=event.target.closest("[data-feeling]")?.dataset.feeling;if(!feeling){return;}if(feeling!=="skip"&&lastWear){const item=items.find(value=>value.id===lastWear.itemId),log=item?.wearLogs.find(value=>value.id===lastWear.logId),refreshDetails=$("detailDialog").open;if(log){log.feeling=feeling;save();if(refreshDetails)openDetails(item.id);}}$("feelingDialog").close();});
-$("undoWear").addEventListener("click",()=>{if(!lastWear)return;const item=items.find(value=>value.id===lastWear.itemId);if(item){item.wearLogs=item.wearLogs.filter(log=>log.id!==lastWear.logId);save();render();}lastWear=null;clearTimeout(toastTimer);$("toast").hidden=true;});
-if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./service-worker.js").catch(error=>console.warn("Offline support is unavailable",error));}
-$("yearAcquired").max=new Date().getFullYear();render();
-</script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#d7f34a">
+    <meta name="color-scheme" content="light dark">
+    <title>Thri-Fi</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="wardrobe.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <div>
+            <strong>Thri-Fi</strong>
+            <small>Quiet closet tracking</small>
+          </div>
+        </div>
+        <button class="ghost-button" type="button" data-view="settings">Settings</button>
+      </header>
+
+      <main class="main-panel">
+        <section id="closetView" class="view active" aria-label="Closet view">
+          <div id="overviewCard" class="overview-card">
+            <div id="segmentStrip" class="segment-strip"></div>
+            <div class="overview-row">
+              <p id="overviewSentence">Your pieces have been with you 0.0 years on average.</p>
+              <div class="mini-actions">
+                <button class="secondary-button" id="rediscoverBtn" type="button">Rediscover</button>
+                <button class="secondary-button" id="colourModeBtn" type="button">Colours</button>
+                <button class="secondary-button" id="filterToggleBtn" type="button">Filter</button>
+              </div>
+            </div>
+          </div>
+
+          <button id="deservesLoveLink" class="deserves-love-link" type="button" data-view="deservesLove">
+            Pieces that deserve love <span id="deservesLoveCount">0 pieces</span>
+          </button>
+
+          <div id="checkInCard" class="checkin-card" hidden></div>
+
+          <div id="catalogFilters" class="catalog-filters" hidden>
+            <label>
+              <span>Search</span>
+              <input id="queryInput" type="search" placeholder="Name, colour or fabric" autocomplete="off">
+            </label>
+            <label>
+              <span>Category</span>
+              <select id="categoryFilter"></select>
+            </label>
+            <label>
+              <span>Season</span>
+              <select id="seasonFilter"></select>
+            </label>
+            <label>
+              <span>Activity</span>
+              <select id="activityFilter"></select>
+            </label>
+            <label>
+              <span>Fabric</span>
+              <select id="fabricFilter"></select>
+            </label>
+          </div>
+
+          <div id="catalogGrid" class="catalog-grid" aria-live="polite"></div>
+        </section>
+
+        <section id="deservesLoveView" class="view deserves-love-view" aria-label="Pieces that deserve love" hidden>
+          <header class="deserves-love-header">
+            <button class="ghost-button" type="button" data-view="closet">← Closet</button>
+            <div>
+              <p class="eyebrow text-uppercase">A little more room</p>
+              <h1>Pieces that deserve love</h1>
+            </div>
+          </header>
+          <div id="deservesLoveGroups" class="deserves-love-groups" aria-live="polite"></div>
+        </section>
+
+        <section id="addView" class="view" aria-label="Add pieces view" hidden>
+          <div id="continueCard" class="continue-card" hidden>
+            <p class="eyebrow text-uppercase">Continue adding pieces</p>
+            <h2 id="continueCardTitle">0 photographed</h2>
+            <button id="continueImportBtn" class="secondary-button" type="button">Keep going</button>
+          </div>
+
+          <div class="panel">
+            <div class="queue-header">
+              <div>
+                <p class="eyebrow text-uppercase">Describe queue</p>
+                <h2 id="queueTitle">Capture all garments</h2>
+              </div>
+              <span id="queueCounter" class="counter">0 of 0</span>
+            </div>
+
+            <div class="progress-bar" aria-label="Description progress">
+              <span id="queueProgress" style="width: 0%"></span>
+            </div>
+
+            <div id="capturePanel" class="capture-panel">
+              <div class="capture-box">
+                <button id="uploadClosetBtn" class="primary-button full-width" type="button">Upload closet</button>
+                <input id="photoBatchInput" type="file" accept="image/*" multiple hidden>
+              </div>
+            </div>
+
+            <div id="queuedPreviewWrap" class="queued-preview-wrap" hidden>
+              <div class="queued-preview">
+                <img id="queuedPreviewImage" alt="Selected garment preview">
+              </div>
+              <p id="queuedPreviewText">Item preview</p>
+              <div class="queued-actions">
+                <button id="retakeQueuedPhotoBtn" class="secondary-button" type="button">Upload photo</button>
+                <button id="removeQueuedPhotoBtn" class="danger-button" type="button">Remove photo</button>
+              </div>
+            </div>
+
+            <form id="savePieceForm" class="piece-form">
+              <label>
+                <span>Category</span>
+                <select name="category">
+                  <option value="tops">tops</option>
+                  <option value="bottoms">bottoms</option>
+                  <option value="dresses">dresses</option>
+                  <option value="outerwear">outerwear</option>
+                  <option value="shoes">shoes</option>
+                  <option value="accessories">accessories</option>
+                  <option value="other">other</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Fabric</span>
+                <select name="fabric">
+                  <option value="cotton">cotton</option>
+                  <option value="wool">wool</option>
+                  <option value="denim">denim</option>
+                  <option value="linen">linen</option>
+                  <option value="synthetic">synthetic</option>
+                  <option value="leather">leather</option>
+                  <option value="silk">silk</option>
+                  <option value="other">other</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Name</span>
+                <input type="text" name="name" placeholder="Soft cotton cardigan">
+              </label>
+
+              <label>
+                <span>Colour</span>
+                <input type="color" name="color" value="#d3d8ae">
+              </label>
+
+              <label>
+                <span>Brand</span>
+                <input type="text" name="brand" placeholder="Optional">
+              </label>
+
+              <label>
+                <span>Size label</span>
+                <input type="text" name="sizeLabel" placeholder="Optional">
+              </label>
+
+              <label>
+                <span>Source</span>
+                <select name="source">
+                  <option value="new">new</option>
+                  <option value="secondhand">secondhand</option>
+                  <option value="gifted">gifted</option>
+                  <option value="swapped">swapped</option>
+                  <option value="inherited">inherited</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Condition</span>
+                <select name="condition">
+                  <option value="good">good</option>
+                  <option value="needs_care">needs_care</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Fit feedback</span>
+                <select name="fitFeedback">
+                  <option value="fits_well">fits_well</option>
+                  <option value="runs_small">runs_small</option>
+                  <option value="runs_large">runs_large</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Year acquired</span>
+                <input type="number" name="yearAcquired" value="2024" min="1900" max="2100">
+              </label>
+
+              <label class="full-width">
+                <span>Note</span>
+                <textarea name="note" rows="3" placeholder="Optional"></textarea>
+              </label>
+
+              <div class="checkbox-row">
+                <label><input type="checkbox" name="seasons" value="spring"> spring</label>
+                <label><input type="checkbox" name="seasons" value="summer"> summer</label>
+                <label><input type="checkbox" name="seasons" value="autumn"> autumn</label>
+                <label><input type="checkbox" name="seasons" value="winter"> winter</label>
+              </div>
+
+              <div class="checkbox-row">
+                <label><input type="checkbox" name="activities" value="everyday"> everyday</label>
+                <label><input type="checkbox" name="activities" value="work"> work</label>
+                <label><input type="checkbox" name="activities" value="sport"> sport</label>
+                <label><input type="checkbox" name="activities" value="outdoor"> outdoor</label>
+                <label><input type="checkbox" name="activities" value="formal"> formal</label>
+              </div>
+
+              <button class="primary-button full-width" type="submit">Save to closet</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="wornTodayView" class="view worn-today-view" aria-label="Worn today view" hidden>
+          <header class="worn-page-header">
+            <p class="eyebrow text-uppercase">Wardrobe log</p>
+            <h1>Worn today</h1>
+          </header>
+          <div class="worn-tabs" role="tablist" aria-label="Worn today views">
+            <button class="worn-tab is-active" type="button" role="tab" aria-selected="true" data-worn-tab="picker">Pick pieces</button>
+            <button class="worn-tab" type="button" role="tab" aria-selected="false" data-worn-tab="fits">Saved fits</button>
+          </div>
+
+          <div id="wornPickerPanel" class="worn-panel">
+            <div class="worn-filters">
+              <label>
+                <span>Search pieces</span>
+                <input id="wornSearch" type="search" placeholder="Name" autocomplete="off">
+              </label>
+              <label>
+                <span>Category</span>
+                <select id="wornCategoryFilter"></select>
+              </label>
+              <div class="worn-colour-filter">
+                <span>Colour</span>
+                <div id="wornColourFilters" class="worn-colour-swatches"></div>
+              </div>
+            </div>
+            <section id="recentlyWornSection" class="recently-worn-section" aria-labelledby="recentlyWornTitle">
+              <h2 id="recentlyWornTitle">Recently worn</h2>
+              <div id="recentlyWornList" class="recently-worn-list"></div>
+            </section>
+            <div id="wornPieceGrid" class="worn-piece-grid" aria-live="polite"></div>
+            <div class="worn-selection-tray">
+              <span id="wornSelectionCount">0 pieces selected</span>
+              <button id="seeOutfitBtn" class="primary-button" type="button" disabled>See outfit</button>
+            </div>
+          </div>
+
+          <section id="wornOutfitOverview" class="worn-outfit-overview" hidden aria-labelledby="wornOutfitTitle">
+            <div class="worn-overview-heading">
+              <button id="backToWornPickerBtn" class="ghost-button" type="button">← Back</button>
+              <div>
+                <p class="eyebrow text-uppercase">Outfit overview</p>
+                <h2 id="wornOutfitTitle">Today's outfit</h2>
+              </div>
+            </div>
+            <div id="wornOutfitCollage" class="worn-outfit-collage"></div>
+            <div class="worn-log-controls">
+              <label>
+                <span>Wear date</span>
+                <input id="wearDateInput" type="date">
+              </label>
+              <button id="logWornOutfitBtn" class="primary-button" type="button">Wore this today</button>
+            </div>
+            <form id="saveFitForm" class="save-fit-form">
+              <label>
+                <span>Fit name (optional)</span>
+                <input id="fitNameInput" type="text" placeholder="A name for this fit">
+              </label>
+              <button class="secondary-button" type="submit">Save as a fit</button>
+            </form>
+            <div id="savedFitActions" class="saved-fit-actions" hidden>
+              <button id="logSavedFitBtn" class="primary-button" type="button">Wore this today</button>
+              <button id="renameSavedFitBtn" class="secondary-button" type="button">Rename</button>
+              <button id="deleteSavedFitBtn" class="danger-button" type="button">Delete fit</button>
+            </div>
+          </section>
+
+          <section id="savedFitsPanel" class="saved-fits-panel" hidden aria-label="Saved fits">
+            <div id="savedFitsList" class="saved-fits-list" aria-live="polite"></div>
+          </section>
+        </section>
+
+        <section id="settingsView" class="view" aria-label="Settings view" hidden>
+          <div class="panel settings-panel">
+            <label>
+              <span>Check-in frequency</span>
+              <select id="frequencySetting">
+                <option value="weekly">weekly</option>
+                <option value="monthly">monthly</option>
+                <option value="never">never</option>
+              </select>
+            </label>
+
+            <label class="toggle-row">
+              <span>Show overview</span>
+              <input id="showOverviewToggle" type="checkbox" checked>
+            </label>
+
+            <button class="secondary-button wide" id="exportDataBtn" type="button">Export my data</button>
+            <button class="danger-button wide" id="deleteAccountBtn" type="button">Delete account and data</button>
+
+            <div class="extras-card">
+              <p class="eyebrow text-uppercase">Extras</p>
+              <p>Reserved for later.</p>
+            </div>
+          </div>
+
+          <section id="pastGarments" class="past-garments panel" aria-labelledby="pastGarmentsTitle">
+            <header class="past-garments-header">
+              <div>
+                <p class="eyebrow text-uppercase">Wardrobe history</p>
+                <h2 id="pastGarmentsTitle">Left my closet</h2>
+              </div>
+              <p id="pastGarmentsSummary" class="past-garments-summary"></p>
+            </header>
+            <div id="pastGarmentsList" class="past-garments-list" aria-live="polite"></div>
+          </section>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Bottom navigation">
+        <button class="nav-item is-active" type="button" data-view="closet">Closet</button>
+        <button class="nav-item" type="button" data-view="wornToday">Worn today</button>
+        <button class="nav-item" type="button" data-view="add">Add pieces</button>
+        <button class="nav-item" type="button" data-view="settings">Settings</button>
+      </nav>
+    </div>
+
+    <aside id="detailCard" class="detail-card" role="dialog" aria-modal="true" aria-label="Item details" hidden></aside>
+
+    <div id="importOverlay" class="import-overlay" hidden>
+      <div class="import-panel">
+        <header class="import-header">
+          <div id="importDotRow" class="import-dot-row" aria-label="Pieces"></div>
+          <div class="import-header-meta">
+            <span id="importCounter">Piece 1 of 1</span>
+            <button id="jumpToUnfinishedBtn" class="secondary-button compact-button" type="button">Jump to first unfinished</button>
+            <button id="closeImportOverlay" class="ghost-button" type="button" aria-label="Close">×</button>
+          </div>
+        </header>
+
+        <div id="importIntro" class="import-intro">
+          <h2>Quick capture</h2>
+          <ol>
+            <li>Lay each piece flat, from above, near a window, with no flash.</li>
+            <li>Photograph the garment, then its label.</li>
+            <li>Describe now or later.</li>
+          </ol>
+          <p>Everything saves as you go. You can close this any time.</p>
+          <div class="intro-actions">
+            <button id="startImportBtn" class="primary-button" type="button">Start taking photos</button>
+            <button id="dismissImportIntroBtn" class="secondary-button" type="button">Don't show this again</button>
+          </div>
+        </div>
+
+        <div id="importContent" class="import-content" hidden>
+          <div class="import-tabs">
+            <button class="import-tab is-active" type="button" data-import-tab="photos">Photos</button>
+            <button class="import-tab" type="button" data-import-tab="details">Details</button>
+          </div>
+
+          <div id="importTabBody" class="import-tab-body"></div>
+        </div>
+
+        <section id="importFinish" class="import-finish" hidden aria-labelledby="finishImportHeading">
+          <h2 id="finishImportHeading">A few pieces have room for more</h2>
+          <p id="finishImportMessage"></p>
+          <div id="finishImportGrid" class="finish-import-grid"></div>
+          <div class="finish-actions">
+            <button id="finishLaterBtn" class="secondary-button" type="button">Finish later</button>
+            <button id="doneImportBtn" class="primary-button" type="button">Done</button>
+          </div>
+        </section>
+
+        <footer class="import-footer">
+          <span id="importStatus">All saved</span>
+          <div class="import-footer-actions">
+            <button id="finishImportBtn" class="secondary-button" type="button">Finish</button>
+            <button id="saveAndCloseImportBtn" class="primary-button" type="button">Save and close</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <input id="importPhotoInput" type="file" accept="image/*" hidden>
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="app.js"></script>
+  </body>
 </html>
