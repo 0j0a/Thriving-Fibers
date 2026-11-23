@@ -1,9 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "forever-wardrobe-shell-v3";
+const CACHE_NAME = "forever-wardrobe-shell-v4";
 const APP_SHELL = [
   "./Closet%20catalog%20prototype.html",
   "./wardrobe.css",
+  "./auth-config.js",
+  "./auth.js",
+  "./app.js",
   "./manifest.webmanifest",
   "./wardrobe-icon.svg"
 ];

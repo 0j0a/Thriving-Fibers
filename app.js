@@ -1,5 +1,15 @@
 const STORAGE_KEY = 'thrifi-v1-items';
 const SETTINGS_KEY = 'thrifi-v1-settings';
+const USER_DATA_KEYS = [
+  STORAGE_KEY,
+  SETTINGS_KEY,
+  'thrifi-v1-fits',
+  'thrifi-v1-check-ins',
+  'thrifi-v1-love-dismissed',
+  'thrifi-import-draft',
+  'thrifi-import-intro-dismissed'
+];
+let activeUserId = null;
 
 const SEGMENTS = [
   {
@@ -229,9 +239,29 @@ const state = {
 
 let items = [];
 
+function userStorageKey(key) {
+  if (!activeUserId) throw new Error('Wardrobe data is only available after signing in.');
+  return `thrifi-user:${activeUserId}:${key}`;
+}
+
+function migrateLegacyStorage() {
+  const migrationKey = 'thrifi-v1-auth-migrated';
+  if (localStorage.getItem(migrationKey) === 'true') return;
+
+  USER_DATA_KEYS.forEach(key => {
+    const scopedKey = userStorageKey(key);
+    if (localStorage.getItem(scopedKey) === null) {
+      const legacyValue = localStorage.getItem(key);
+      if (legacyValue !== null) localStorage.setItem(scopedKey, legacyValue);
+    }
+    localStorage.removeItem(key);
+  });
+  localStorage.setItem(migrationKey, 'true');
+}
+
 function getStoredItems() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(userStorageKey(STORAGE_KEY));
     return raw ? JSON.parse(raw) : SAMPLE_ITEMS;
   } catch (error) {
     return SAMPLE_ITEMS;
@@ -239,24 +269,24 @@ function getStoredItems() {
 }
 
 function saveItems() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  localStorage.setItem(userStorageKey(STORAGE_KEY), JSON.stringify(items));
 }
 
 function getStoredFits() {
   try {
-    return JSON.parse(localStorage.getItem('thrifi-v1-fits') || '[]');
+    return JSON.parse(localStorage.getItem(userStorageKey('thrifi-v1-fits')) || '[]');
   } catch (error) {
     return [];
   }
 }
 
 function saveFits() {
-  localStorage.setItem('thrifi-v1-fits', JSON.stringify(state.savedFits));
+  localStorage.setItem(userStorageKey('thrifi-v1-fits'), JSON.stringify(state.savedFits));
 }
 
 function getStoredCheckIns() {
   try {
-    return JSON.parse(localStorage.getItem('thrifi-v1-check-ins') || '[]');
+    return JSON.parse(localStorage.getItem(userStorageKey('thrifi-v1-check-ins')) || '[]');
   } catch (error) {
     return [];
   }
@@ -264,7 +294,7 @@ function getStoredCheckIns() {
 
 function getStoredLoveDismissals() {
   try {
-    const stored = JSON.parse(localStorage.getItem('thrifi-v1-love-dismissed') || '{}');
+    const stored = JSON.parse(localStorage.getItem(userStorageKey('thrifi-v1-love-dismissed')) || '{}');
     return {
       itemIds: Array.isArray(stored.itemIds) ? stored.itemIds : [],
       checkInIds: Array.isArray(stored.checkInIds) ? stored.checkInIds : []
@@ -275,12 +305,12 @@ function getStoredLoveDismissals() {
 }
 
 function saveLoveDismissals() {
-  localStorage.setItem('thrifi-v1-love-dismissed', JSON.stringify(state.loveDismissed));
+  localStorage.setItem(userStorageKey('thrifi-v1-love-dismissed'), JSON.stringify(state.loveDismissed));
 }
 
 function getStoredSettings() {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    const raw = localStorage.getItem(userStorageKey(SETTINGS_KEY));
     if (!raw) return {};
     return JSON.parse(raw);
   } catch (error) {
@@ -289,7 +319,7 @@ function getStoredSettings() {
 }
 
 function saveSettings() {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+  localStorage.setItem(userStorageKey(SETTINGS_KEY), JSON.stringify({
     showOverview: state.showOverview,
     frequency: state.frequency
   }));
@@ -297,7 +327,7 @@ function saveSettings() {
 
 function getStoredImportDraft() {
   try {
-    const raw = localStorage.getItem('thrifi-import-draft');
+    const raw = localStorage.getItem(userStorageKey('thrifi-import-draft'));
     return raw ? JSON.parse(raw) : [];
   } catch (error) {
     return [];
@@ -308,7 +338,7 @@ function saveImportDraft() {
   const status = document.getElementById('importStatus');
   if (status) status.textContent = 'Saving...';
   try {
-    localStorage.setItem('thrifi-import-draft', JSON.stringify(state.importPieces));
+    localStorage.setItem(userStorageKey('thrifi-import-draft'), JSON.stringify(state.importPieces));
     if (state.importStatusTimer) clearTimeout(state.importStatusTimer);
     state.importStatusTimer = setTimeout(() => {
       if (status) status.textContent = 'All saved';
@@ -320,10 +350,12 @@ function saveImportDraft() {
   renderContinueCard();
 }
 
-function initialize() {
+function initialize(userId) {
+  activeUserId = userId;
+  migrateLegacyStorage();
   items = getStoredItems();
   Object.assign(state, getStoredSettings());
-  const storedIntro = localStorage.getItem('thrifi-import-intro-dismissed');
+  const storedIntro = localStorage.getItem(userStorageKey('thrifi-import-intro-dismissed'));
   state.importIntroDismissed = storedIntro === 'true';
   state.importPieces = getStoredImportDraft();
   state.savedFits = getStoredFits();
@@ -529,13 +561,13 @@ function bindEvents() {
 
   document.getElementById('startImportBtn').addEventListener('click', () => {
     state.importIntroDismissed = true;
-    localStorage.setItem('thrifi-import-intro-dismissed', 'true');
+    localStorage.setItem(userStorageKey('thrifi-import-intro-dismissed'), 'true');
     openImportOverlay();
   });
 
   document.getElementById('dismissImportIntroBtn').addEventListener('click', () => {
     state.importIntroDismissed = true;
-    localStorage.setItem('thrifi-import-intro-dismissed', 'true');
+    localStorage.setItem(userStorageKey('thrifi-import-intro-dismissed'), 'true');
     renderImportOverlay();
   });
 
@@ -2115,4 +2147,4 @@ function renderFilters() {
   fabric.value = state.fabric;
 }
 
-document.addEventListener('DOMContentLoaded', initialize);
+document.addEventListener('thrifi:authenticated', event => initialize(event.detail.user.id));

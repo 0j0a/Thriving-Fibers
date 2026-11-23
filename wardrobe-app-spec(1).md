@@ -13,6 +13,9 @@ A web app (PWA, later wrapped with Capacitor for Google Play) that helps people 
 - PWA: manifest + service worker, offline-friendly catalog
 - Compress photos client-side before upload (max ~1200px, JPEG ~0.8)
 
+### Prototype authentication setup
+The static prototype uses Supabase Auth for sign-up, sign-in, sign-out, and password recovery. Set `THRIFI_SUPABASE_URL` and `THRIFI_SUPABASE_ANON_KEY` in `auth-config.js` to the project's URL and public anon/publishable key; never put a `service_role` key in browser code. Allow the local and deployed app URLs in Supabase Auth's site URL and redirect URL settings. Closet content remains in browser storage and is separated by signed-in account; it is not synced to Supabase.
+
 ## Build order
 1. Catalog + wear tracking (this spec's Phase 1)
 2. Care and repair guides linked to fabric
